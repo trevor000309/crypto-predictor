@@ -1,0 +1,7 @@
+#clients
+SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"]
+INTERVAL = "30m"
+START_AT = "1 day ago UTC"
+
+RSI_PERIOD = 14
+ATR_PERIOD = 14
