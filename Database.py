@@ -1,4 +1,6 @@
 import sqlite3
+from logging import exception
+
 import pandas as pd
 from fontTools.pens.basePen import NullPen
 
@@ -52,3 +54,22 @@ class Database:
         DROP TABLE temp_table
         ''')
         self.conn.commit()
+
+    def get_table_names(self):
+        table_names = self.conn.execute('''
+        SELECT name FROM sqlite_master WHERE type='table' AND name NOT like 'sqlite_'
+        ''').fetchall()
+
+        return table_names
+
+    def delete_table(self, table_name):
+        try:
+            self.conn.execute(f'''
+            DROP TABLE IF EXISTS {table_name}
+            ''')
+            self.conn.commit()
+            print(f"Table {table_name} deleted")
+            return True
+        except exception as e:
+            print(e)
+            return False
