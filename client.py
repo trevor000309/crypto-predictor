@@ -22,5 +22,6 @@ class DataCollector:
         df = pd.DataFrame(essential_data, columns=["Open time", "Open price", "Highest", "Lowest", "Close price", "Volume", "Number of trades", "Taker buy volume"])
 
         df["Open time"] = pd.to_datetime(df["Open time"], unit = "ms")
+        df["symbol"] = symbol
 
         return df
