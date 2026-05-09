@@ -1,14 +1,10 @@
 import sqlite3
 from logging import exception
-
 import pandas as pd
-from fontTools.pens.basePen import NullPen
-
 
 class Database:
     def __init__(self, db_path = "crypto_data"):
         self.conn = sqlite3.connect(db_path)
-        self.create_table()
 
     def create_table(self, table_name, columns, primary_keys=None):
         if primary_keys is None:
@@ -19,11 +15,11 @@ class Database:
             if primary_key not in column_names:
                 raise ValueError(f"{primary_key} not found in columns.")
 
-        column_definitions = [f"{column[0]} {column[1]}" for column in columns]
+        column_definitions = [f"{column_name} {column_type}" for column_name, column_type in columns]
         if primary_keys:
             column_definitions.append(f"PRIMARY KEY ({','.join(primary_keys)})")
 
-        execution = f"CREATE TABLE IF NOT EXIST {table_name}({','.join(column_definitions)})"
+        execution = f"CREATE TABLE IF NOT EXISTS {table_name}({','.join(column_definitions)})"
 
         self.conn.execute(execution)
         self.conn.commit()
@@ -73,3 +69,19 @@ class Database:
         except exception as e:
             print(e)
             return False
+
+    def if_table_exist(self, table_name):
+        try:
+            count = self.conn.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
+            return count >= 1
+        except Exception as e:
+            return e
+
+    def verify_storage(self, symbol):
+        count = self.conn.execute(f"SELECT COUNT(*) FROM price_data WHERE symbol = {symbol}").fetchone()[0]
+
+        latest = self.conn.execute(f"SELECT MAX(open_time) FROM price_data WHERE symbol = {symbol}").fetchone()[0]
+
+        print(f"✅ {symbol}: {count} rows, latest: {latest}")
+
+        return count, latest

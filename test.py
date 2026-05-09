@@ -1,3 +1,13 @@
-import numpy as np
+from client import DataCollector
+from config import SYMBOLS
+from Database import Database
+from transformers import pipeline
+import requests
 
-print(np.max([1,2,3]))
+# Test if you can reach Binance
+try:
+    response = requests.get("https://api.binance.com/api/v3/ping")
+    print(f"Binance API response: {response.status_code}")
+    print("✅ Connection working!")
+except Exception as e:
+    print(f"❌ Connection failed: {e}")
