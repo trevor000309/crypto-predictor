@@ -3,7 +3,7 @@ from logging import exception
 import pandas as pd
 
 class Database:
-    def __init__(self, db_path = "crypto_data"):
+    def __init__(self, db_path = "crypto_data.db"):
         self.conn = sqlite3.connect(db_path)
 
     def create_table(self, table_name, columns, primary_keys=None):
@@ -71,16 +71,16 @@ class Database:
             return False
 
     def if_table_exist(self, table_name):
-        try:
-            count = self.conn.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
-            return count >= 1
-        except Exception as e:
-            return e
+        count = self.conn.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
+            (table_name,)
+        ).fetchone()[0]
+        return count > 0
 
     def verify_storage(self, symbol):
-        count = self.conn.execute(f"SELECT COUNT(*) FROM price_data WHERE symbol = {symbol}").fetchone()[0]
+        count = self.conn.execute("SELECT COUNT(*) FROM price_data WHERE symbol = ?", (symbol,)).fetchone()[0]
 
-        latest = self.conn.execute(f"SELECT MAX(open_time) FROM price_data WHERE symbol = {symbol}").fetchone()[0]
+        latest = self.conn.execute("SELECT MAX(open_time) FROM price_data WHERE symbol = ?", (symbol,)).fetchone()[0]
 
         print(f"✅ {symbol}: {count} rows, latest: {latest}")
 

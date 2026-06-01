@@ -19,3 +19,16 @@ PRICE_DATA_COLUMNS = [
 ]
 
 PRICE_DATA_PRIMARY_KEYS = ['symbol', 'open_time']
+
+FEATURE_DATA_COLUMNS = [
+    ('symbol', 'TEXT NOT NULL'),
+    ('open_time', 'DATETIME NOT NULL'),
+    ('rsi', 'REAL'),
+    ('atr', 'REAL'),
+    ('ma7', 'REAL'),
+    ('ma25', 'REAL'),
+    ('price_change_pct', 'REAL'),
+    ('label', 'INTEGER')
+]
+
+FEATURE_DATA_PRIMARY_KEYS = ['symbol', 'open_time']

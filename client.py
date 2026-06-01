@@ -19,9 +19,9 @@ class DataCollector:
         klines = self.get_data(symbol)
 
         essential_data = [[kline[i] for i in [0,1,2,3,4,5,8,9]] for kline in klines]
-        df = pd.DataFrame(essential_data, columns=["Open time", "Open price", "Highest", "Lowest", "Close price", "Volume", "Number of trades", "Taker buy volume"])
+        df = pd.DataFrame(essential_data, columns=["open_time", "open", "high", "low", "close", "volume", "number_of_trades", "taker_buy_volume"])
 
-        df["Open time"] = pd.to_datetime(df["Open time"], unit = "ms")
-        df["symbol"] = symbol
+        df["open_time"] = pd.to_datetime(df["open_time"], unit="ms")
+        df.insert(0, "symbol", symbol)
 
         return df
