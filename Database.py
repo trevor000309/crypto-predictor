@@ -1,5 +1,4 @@
 import sqlite3
-from logging import exception
 import pandas as pd
 
 class Database:
@@ -35,12 +34,12 @@ class Database:
 
         self.conn.commit()
 
-    def store_data(self, df, table_name):
+    def store_data(self, df, table_name, on_conflict="IGNORE"):
         temp_table = df.copy()
         temp_table.to_sql("temp_table", self.conn, if_exists="replace", index=False)
 
         self.conn.execute(f'''
-        INSERT OR IGNORE INTO {table_name}
+        INSERT OR {on_conflict} INTO {table_name}
         SELECT * FROM temp_table
         ''')
 
@@ -53,7 +52,7 @@ class Database:
 
     def get_table_names(self):
         table_names = self.conn.execute('''
-        SELECT name FROM sqlite_master WHERE type='table' AND name NOT like 'sqlite_'
+        SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'
         ''').fetchall()
 
         return table_names
@@ -66,7 +65,7 @@ class Database:
             self.conn.commit()
             print(f"Table {table_name} deleted")
             return True
-        except exception as e:
+        except Exception as e:
             print(e)
             return False
 
@@ -77,11 +76,25 @@ class Database:
         ).fetchone()[0]
         return count > 0
 
+    def get_latest_date(self, table_name, date_column, user_column=None, user_name=None):
+        query = f"SELECT MAX({date_column}) FROM {table_name}"
+        if user_column:
+            query += f" WHERE {user_column} = ?"
+            return self.conn.execute(query, (user_name,)).fetchone()[0]
+        return self.conn.execute(query).fetchone()[0]
+
+    def get_oldest_date(self, table_name, date_column, user_column=None, user_name=None):
+        query = f"SELECT MIN({date_column}) FROM {table_name}"
+        if user_column:
+            query += f" WHERE {user_column} = ?"
+            return self.conn.execute(query, (user_name,)).fetchone()[0]
+        return self.conn.execute(query).fetchone()[0]
+
+    def close(self):
+        self.conn.close()
+
     def verify_storage(self, symbol):
         count = self.conn.execute("SELECT COUNT(*) FROM price_data WHERE symbol = ?", (symbol,)).fetchone()[0]
-
         latest = self.conn.execute("SELECT MAX(open_time) FROM price_data WHERE symbol = ?", (symbol,)).fetchone()[0]
-
         print(f"✅ {symbol}: {count} rows, latest: {latest}")
-
         return count, latest

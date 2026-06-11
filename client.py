@@ -1,10 +1,6 @@
 from binance.client import Client
 import pandas as pd
 import config
-import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-from datetime import datetime
-import os
 
 class DataCollector:
     def __init__(self):
@@ -23,5 +19,8 @@ class DataCollector:
 
         df["open_time"] = pd.to_datetime(df["open_time"], unit="ms")
         df.insert(0, "symbol", symbol)
+
+        numeric_cols = ["open", "high", "low", "close", "volume", "number_of_trades", "taker_buy_volume"]
+        df[numeric_cols] = df[numeric_cols].astype(float)
 
         return df
