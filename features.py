@@ -1,6 +1,7 @@
 import pandas as pd
+import numpy as np
 import config
-from Database import Database
+from database import Database
 
 
 class FeatureEngineer:
@@ -41,18 +42,50 @@ class FeatureEngineer:
     def compute_features(self, symbol):
         df = self.load_price_data(symbol)
 
-        df["rsi"] = self.calculate_rsi(df["close"])
-        df["atr"] = self.calculate_atr(df)
-        df["ma7"] = df["close"].rolling(window=7).mean()
-        df["ma25"] = df["close"].rolling(window=25).mean()
-        df["price_change_pct"] = df["close"].pct_change() * 100
-        # 1 = next candle up, 0 = next candle down
-        df["label"] = (df["close"].shift(-1) > df["close"]).astype(int)
+        ma7 = df["close"].rolling(window=7).mean()
+        ma25 = df["close"].rolling(window=25).mean()
+
+        df["dist_ma25"] = (df["close"] - ma25) / ma25
+        df["ma_spread"] = (ma7 - ma25) / ma25
+
+        # percentage change from previous close
+        df["log_return"] = np.log(df["close"] / df["close"].shift(1))
+
+        raw_ATR = self.calculate_atr(df)
+        df["RSI"] = self.calculate_rsi(df["close"])
+        df["ATR_percentage"] = raw_ATR / df["close"]
+
+        is_up = df["close"] > df["open"]
+        is_down = df["close"] < df["open"]
+
+        up_id = (is_up != is_up.shift(1)).cumsum()
+        df["consecutive_up"] = is_up.groupby(up_id).cumsum()
+
+        down_id = (is_down != is_down.shift(1)).cumsum()
+        df["consecutive_down"] = is_down.groupby(down_id).cumsum()
+
+        # 1 = next candle up, -1 = next candle down
+        upper_bound = df["close"] + 1.75 * raw_ATR
+        lower_bound = df["close"] - 1.75 * raw_ATR
+        label = pd.Series(0, index=df.index)
+        resolved = pd.Series(False, index=df.index)
+
+        for i in range(1, config.FUTURE_WINDOW + 1):
+            hit_upper = (df["high"].shift(-i) > upper_bound) & (~resolved)
+            hit_lower = (df["low"].shift(-i) < lower_bound) & (~resolved)
+
+            label[hit_upper & ~hit_lower] = 1
+            label[hit_lower & ~hit_upper] = -1
+            label[hit_upper & hit_lower] = -1 # If both are hit, prioritize down movement
+
+            resolved[hit_upper | hit_lower] = True
+
+        df["label"] = label
 
         # Drop NaN rows from rolling calculations and the last row (label unknown)
-        df = df.dropna().iloc[:-1]
+        df = df.dropna().iloc[:-config.FUTURE_WINDOW]
 
-        return df[["symbol", "open_time", "rsi", "atr", "ma7", "ma25", "price_change_pct", "label"]]
+        return df[["symbol", "open_time", "dist_ma25", "ma_spread", "RSI", "ATR_percentage", "log_return", "consecutive_up", "consecutive_down", "label"]]
 
     def store_features(self, symbol):
         if not self.db.if_table_exist("feature_data"):

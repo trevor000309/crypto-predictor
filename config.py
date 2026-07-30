@@ -7,6 +7,8 @@ TWITTER_START_AT = "1 Jan, 2024"
 RSI_PERIOD = 14
 ATR_PERIOD = 14
 
+FUTURE_WINDOW = 5
+
 PRICE_DATA_COLUMNS = [
     ('symbol', 'TEXT NOT NULL'),
     ('open_time', 'DATETIME NOT NULL'),
@@ -24,11 +26,13 @@ PRICE_DATA_PRIMARY_KEYS = ['symbol', 'open_time']
 FEATURE_DATA_COLUMNS = [
     ('symbol', 'TEXT NOT NULL'),
     ('open_time', 'DATETIME NOT NULL'),
-    ('rsi', 'REAL'),
-    ('atr', 'REAL'),
-    ('ma7', 'REAL'),
-    ('ma25', 'REAL'),
-    ('price_change_pct', 'REAL'),
+    ('dist_ma25', 'REAL'),
+    ('ma_spread', 'REAL'),
+    ('RSI', 'REAL'),
+    ('ATR_percentage', 'REAL'),
+    ('log_return', 'REAL'),
+    ('consecutive_up', 'INTEGER'),
+    ('consecutive_down', 'INTEGER'),
     ('label', 'INTEGER')
 ]
 

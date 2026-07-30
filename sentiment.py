@@ -1,24 +1,24 @@
 import pandas as pd
 from transformers import pipeline
-from Database import Database
+from database import Database
 
 class SentimentAnalyzer:
     def __init__(self, database: Database):
         self.db = database
         print("Loading sentiment model...")
         self.model = pipeline(
-            "sentiment-analysis",
-            model="cardiffnlp/twitter-roberta-base-sentiment",
+            "text-classification",
+            model="ElKulako/cryptobert",
             truncation=True,
             max_length=512
         )
         print("Model loaded.")
 
-    def _to_score(self, label: str, score: float) -> float:
-        # LABEL_0 = Negative, LABEL_1 = Neutral, LABEL_2 = Positive
-        if label == "LABEL_2":
+    def _to_score(self, label, score):
+        # ElKulako/cryptobert labels: Bullish, Neutral, Bearish
+        if label == "Bullish":
             return round(score, 4)
-        elif label == "LABEL_0":
+        elif label == "Bearish":
             return round(-score, 4)
         else:
             return 0.0
@@ -44,7 +44,7 @@ class SentimentAnalyzer:
             for result in results:
                 scores.append(self._to_score(result["label"], result["score"]))
 
-            print(f"  {min(i + batch_size, len(texts))}/{len(df)} tweets processed...")
+            print(f"{min(i + batch_size, len(texts))}/{len(df)} tweets processed...")
 
         df["sentiment"] = scores
 
@@ -54,3 +54,12 @@ class SentimentAnalyzer:
         )
         self.db.conn.commit()
         print(f"✅ Sentiment updated for {len(df)} tweets")
+
+
+if __name__ == '__main__':
+    db = Database()
+    try:
+        analyzer = SentimentAnalyzer(db)
+        analyzer.analyze()
+    finally:
+        db.close()
