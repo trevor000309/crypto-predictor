@@ -3,7 +3,6 @@ import numpy as np
 import config
 from database import Database
 
-
 class FeatureEngineer:
     def __init__(self, database: Database):
         self.db = database

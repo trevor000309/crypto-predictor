@@ -54,12 +54,3 @@ class SentimentAnalyzer:
         )
         self.db.conn.commit()
         print(f"✅ Sentiment updated for {len(df)} tweets")
-
-
-if __name__ == '__main__':
-    db = Database()
-    try:
-        analyzer = SentimentAnalyzer(db)
-        analyzer.analyze()
-    finally:
-        db.close()

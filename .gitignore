@@ -1,17 +1,32 @@
-#Database files
+# Database files
 *.db
 *.sqlite3
 
-#Secrets
+# Secrets
 .env
 
-#Python cache
+# Python
 __pycache__/
 *.pyc
+venv/
+venv_old_py39/
 
-#IDE
+# Model files
+*.pt
+*.pth
+
+# IDE
 .vscode/
 .idea/
 
-#jupyter notebook
+# Jupyter notebook
 .ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+
+# notes
+notes_pytorch_lstm.md

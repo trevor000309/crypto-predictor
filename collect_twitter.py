@@ -3,7 +3,6 @@ from database import Database
 from twitter_collector import TwitterCollector
 from datetime import datetime
 
-
 def run():
     binance_database = Database()
     twitter_collector = TwitterCollector()
@@ -32,7 +31,6 @@ def run():
                 print(f"⚠️ No new tweets for {username}")
     finally:
         binance_database.close()
-
 
 if __name__ == '__main__':
     run()
